@@ -3,6 +3,8 @@ import { installChapter } from './chapter.js';
 import {WORLD_WIDTH, WORLD_HEIGHT, distance, isWalkable} from './game/world/WorldGeometry.js';
 import {SAVE_KEY, loadGame, saveGame, resetGame} from './game/systems/SaveSystem.js';
 import {installPlayerControls, updatePlayer} from './game/entities/PlayerController.js';
+import {createTravelerAnimations} from './game/entities/TravelerSprites.js';
+import {buildWorld} from './game/world/WorldBuilder.js';
 
 const WIDTH=WORLD_WIDTH, HEIGHT=WORLD_HEIGHT;
 const ELEMENTS = {
@@ -17,12 +19,13 @@ class Floresta extends Phaser.Scene{
  preload(){this.load.image('forest','/assets/floresta.png');this.load.image('hero','/assets/heroi.png');this.load.image('guardian','/assets/guardiao.png');this.load.image('fragment','/assets/fragment.png')}
  create(){gameScene=this;
   this.cameras.main.setBackgroundColor('#101b15');this.physics.world.setBounds(0,0,WIDTH,HEIGHT);this.cameras.main.setBounds(0,0,WIDTH,HEIGHT);
-  this.add.image(0,0,'forest').setOrigin(0,0).setDepth(0);
+  createTravelerAnimations(this);
   this.add.ellipse(255,470,36,12,0x152318,.48).setDepth(15);
   const start=this.saveData.player && this.inTrail(this.saveData.player.x,this.saveData.player.y)?this.saveData.player:{x:290,y:462};
   this.playerShadow=this.add.ellipse(start.x,start.y+2,42,14,0x171d12,.43).setDepth(18);
-  this.player=this.physics.add.sprite(start.x,start.y,'hero').setOrigin(.5,1).setDepth(20).setCollideWorldBounds(true);
-  this.player.body.setSize(23,18).setOffset(22,97);this.player.setScale(.83);
+  this.player=this.physics.add.sprite(start.x,start.y,'traveler',0).setOrigin(.5,1).setDepth(20).setCollideWorldBounds(true);
+  this.player.setScale(1.8);this.player.body.setSize(13,9).setOffset(10,29);this.player.setFrame(0);
+  this.worldLayers=buildWorld(this);
   this.guardianShadow=this.add.ellipse(514,464,70,16,0x161c13,.38).setDepth(19);
   this.guardian=this.add.image(514,464,'guardian').setOrigin(.5,1).setScale(.88).setDepth(21);
   this.guardianLabel=this.add.text(514,351,'✦  GUARDIÃO',{fontFamily:'Arial',fontSize:'16px',fontStyle:'bold',color:'#f9e0aa',backgroundColor:'#1d2f25db',padding:{x:10,y:6}}).setOrigin(.5).setDepth(40);
@@ -30,7 +33,7 @@ class Floresta extends Phaser.Scene{
   this.items=[{id:0,x:790,y:543},{id:1,x:1095,y:548},{id:2,x:1389,y:821}];
   this.items.forEach(item=>this.renderItem(item));
   this.chapter=installChapter(this);
-  this.cameras.main.startFollow(this.player,true,.095,.095);this.cameras.main.setZoom(1.06);
+  this.cameras.main.startFollow(this.player,true,.095,.095);this.cameras.main.setZoom(1.20);
   installPlayerControls(this);
   this.refreshUI();this.toast(this.finished?'A luz voltou à floresta. Continue explorando.':'Encontre o Guardião e siga a trilha.');
   this.events.on('shutdown',()=>this.save());
@@ -54,7 +57,7 @@ class Floresta extends Phaser.Scene{
  interact(){if(document.querySelector('#opening')?.hidden===false)return;if(this.dialogOpen){this.closeDialog();return}const x=this.player.x,y=this.player.y;
   if(this.chapter?.interact(x,y))return;const nearItem=this.items.find(i=>!this.collected.has(i.id)&&distance(x,y,i.x,i.y)<84);if(nearItem){this.collected.add(nearItem.id);[nearItem.crystal,nearItem.ring,nearItem.glow].forEach(o=>o?.destroy());this.toast(`Fragmento da luz encontrado! ${this.collected.size}/3`);this.refreshUI();this.save();return}
   if(distance(x,y,514,464)<112){this.talked=true;if(this.collected.size===3){this.finished=true;this.openDialog('A floresta desperta','Você reuniu os três fragmentos!\n\nA luz retorna lentamente entre as árvores. Seu primeiro capítulo está completo.\n\n✦ MISSÃO CONCLUÍDA ✦')}else{this.openDialog('O Guardião',`Viajante, uma antiga luz se partiu.\n\nSiga a trilha e encontre os três fragmentos escondidos na floresta.\n\nTraga-os até mim. A floresta precisa de você.\n\nFragmentos encontrados: ${this.collected.size}/3.`)}this.refreshUI();this.save();return}
-  this.toast('Aproxime-se do Guardião ou de um fragmento brilhante.')
+  this.toast('Explore o mundo e aproxime-se de algum ponto de interesse.')
  }
  update(_,delta){if(!this.player)return;
   if(this.dialogOpen){this.player.setVelocity(0);this.near=null;ELEMENTS.interact.hidden=true;return}
