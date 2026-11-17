@@ -208,5 +208,22 @@ export function buildWorld(scene){
    scene.add.text(x,y,text,{fontFamily:'monospace',fontSize:'11px',fontStyle:'bold',color:'#f2dca5',backgroundColor:'#14291fcf',padding:{x:7,y:4}}).setOrigin(.5).setDepth(y+8);
  };
  label(860,324,'CABANA ABANDONADA');label(1460,635,'RUÍNAS');
- return {colliders:staticColliders};
+ const landmarks=[
+   {id:'fogueira',x:312,y:590,r:67,label:'Examinar fogueira',title:'O último acampamento',
+     text:'A madeira ainda está quente. Alguém passou por aqui recentemente.\n\nEntre as cinzas, você encontra um pequeno símbolo igual ao gravado nas pedras antigas.'},
+   {id:'cabana',x:873,y:473,r:78,label:'Explorar cabana',title:'A cabana esquecida',
+     text:'A porta está trancada por dentro. Pela janela, você vê anotações, mapas e um retrato desbotado.\n\nNa madeira alguém escreveu: “Quando a terceira luz despertar, procure as raízes.”'},
+   {id:'ponte',x:waterX(540),y:541,r:79,label:'Examinar ponte',title:'A ponte dos ecos',
+     text:'O rio murmura uma melodia antiga sob as tábuas. Na margem oposta, o caminho parece continuar até ruínas esquecidas.'},
+   {id:'ruinas',x:1450,y:776,r:83,label:'Investigar ruínas',title:'As ruínas adormecidas',
+     text:'Uma construção de pedra resiste entre as raízes. Uma escada desce para a escuridão, mas a entrada está selada.\n\nHá sinais de que alguém tentou abri-la antes de você.'}
+ ];
+ const nearby=(x,y)=>landmarks.find(o=>Math.hypot(x-o.x,y-o.y)<o.r)||null;
+ const interact=(x,y)=>{
+   const object=nearby(x,y);
+   if(!object)return false;
+   scene.openDialog(object.title,object.text);
+   return true;
+ };
+ return {colliders:staticColliders,nearby,interact};
 }
