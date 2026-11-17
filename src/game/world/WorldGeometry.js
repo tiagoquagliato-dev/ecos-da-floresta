@@ -22,9 +22,7 @@ export function distanceToTrail(x,y) {
   return min;
 }
 
-// The illustrated V0.5 landscape only supports the current walkable trail.
-// This boundary will be replaced by colliders in the new layered tilemap.
-export function isWalkable(x,y,margin=102) {
-  return x>80 && x<WORLD_WIDTH-35 && y>320 &&
-    y<WORLD_HEIGHT-28 && distanceToTrail(x,y)<margin;
+// Open exploration now uses individual Phaser physics colliders instead of an invisible trail corridor.
+export function isWalkable(x,y) {
+  return Number.isFinite(x) && Number.isFinite(y) && x>=42 && x<=WORLD_WIDTH-42 && y>=42 && y<=WORLD_HEIGHT-42;
 }
