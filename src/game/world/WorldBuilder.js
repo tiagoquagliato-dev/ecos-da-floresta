@@ -2,8 +2,8 @@
 import {WORLD_WIDTH as W, WORLD_HEIGHT as H, TRAIL_POINTS, distanceToTrail} from './WorldGeometry.js';
 
 const COLOR={
- grass:['#354f37','#3a583e','#416345','#486a47','#314a35'],
- path:['#947750','#a88a5c','#b39869','#806846'],
+ grass:['#3c5940','#405d42','#3f5b41','#425e43','#3b573e'],
+ path:['#977a51','#a78c61','#b69b72','#897148'],
  river:['#254e57','#2e6670','#3d7d83','#459098'],
  leaf:['#183b35','#235246','#2e6252','#477457','#68835c','#93a36a','#b5ac69'],
  wood:['#3f3025','#6c4930','#9a6841','#c29b69']
@@ -19,7 +19,7 @@ function sprite(scene,key,w,h,painter){
  painter(ctx,w,h);scene.textures.addCanvas(key,canvas);
 }
 function rect(c,x,y,w,h,color){c.fillStyle=color;c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
-function waterX(y){return 1163+Math.sin(y*.009+1)*28}
+function waterX(y){const d=y-540;return 1165+Math.sin(d*.006)*42+Math.sin(d*.019)*11}
 function safeFromLandmark(x,y){
  return [[290,460,125],[514,465,134],[681,515,98],[790,543,92],
  [976,526,92],[1095,548,110],[1309,650,113],[1389,821,100],
@@ -28,18 +28,29 @@ function safeFromLandmark(x,y){
 function treeTexture(scene,variant){
  const key='forest-tree-'+variant;
  sprite(scene,key,116,148,(c)=>{
-   const shades=COLOR.leaf;
-   rect(c,49,71,21,66,'#312a25');rect(c,53,76,14,60,'#6f5137');
+   const shadeGroups=[
+    ['#183a37','#234a43','#315d4d','#4b7359','#6c8767','#829b78','#9cae8d'],
+    ['#2b3e31','#39573e','#58764b','#7d9057','#a0a467','#c3b775','#d6c77f'],
+    ['#173b3e','#225451','#32625c','#477c70','#668a76','#86a28b','#a3ad91']
+   ];
+   const shades=shadeGroups[variant%shadeGroups.length];
+   rect(c,46,72,27,67,'#202b24');rect(c,49,74,21,62,'#765039');rect(c,54,83,12,53,'#976a45');
    for(let i=0;i<17;i++)rect(c,53+(i%3)*5,76+i*3,3,2,i%2?'#95734d':'#45372b');
    // Irregular leaf silhouette composed of clustered 8px color blocks.
    const rng=()=>random();
-   const blobs=[[29,73,26],[75,69,28],[55,42,34],[28,35,22],[86,35,21],[58,73,33],[47,20,22]];
+   const crowns=[
+    [[28,76,25],[75,69,27],[55,42,33],[27,35,20],[86,38,19],[56,70,32],[45,20,20]],
+    [[28,77,27],[78,77,27],[54,47,37],[17,54,21],[90,55,23],[58,22,22]],
+    [[31,64,29],[77,57,24],[58,28,32],[19,39,18],[86,30,21],[56,79,28]],
+    [[30,73,30],[79,65,25],[55,42,36],[27,27,23],[89,36,17],[57,79,28]]
+   ];
+   const blobs=crowns[Math.floor(variant/3)%crowns.length];
    blobs.forEach(([cx,cy,r],bi)=>{
      for(let y=-r;y<r;y+=5){
        for(let x=-r;x<r;x+=5){
          const d=(x*x+y*y)/(r*r);
          if(d>0.97-(rng()*.22))continue;
-         const shade=clamp(Math.floor((cy+y)/18)+(variant%3)-1+Math.floor(rng()*2),0,shades.length-1);
+         const shade=clamp(Math.floor((cy+y)/18)-1+Math.floor(rng()*2),0,shades.length-1);
          rect(c,cx+x,cy+y,6,6,shades[shade]);
        }
      }
@@ -95,44 +106,46 @@ function makeSmallTextures(scene){
  });
 }
 function drawTerrain(scene){
- // Canvas-built terrain contains only the ground layer. Trees, scenery,
- // bridge and blocking objects remain separate, depth-sorted Phaser objects.
+ // Desenho das camadas de solo em canvas, enquanto obstáculos e copas permanecem
+ // como objetos independentes do Phaser (colisão e ordenação por profundidade).
  sprite(scene,'forest-ground',W,H,c=>{
-   rect(c,0,0,W,H,'#354f37');
+   rect(c,0,0,W,H,'#3c5940');
    for(let y=0;y<H;y+=32)for(let x=0;x<W;x+=32){
-     rect(c,x,y,32,32,pick(COLOR.grass));
-     for(let i=0;i<13;i++){
+     const base=random();
+     rect(c,x,y,32,32,base<.72?'#3e5b41':pick(COLOR.grass));
+     for(let i=0;i<4;i++){
        const px=x+random()*31,py=y+random()*31;
-       rect(c,px,py,2+random()*5,1+random()*4,pick(['#2c4a34','#648153','#769160','#253f32']));
+       rect(c,px,py,2+random()*5,2+random()*2,pick(['#35513b','#54734b','#66835a']));
      }
    }
-   // Wide trail is drawn as a string of irregular dirt tile clusters.
-   for(let i=1;i<TRAIL_POINTS.length;i++){
-     const [ax,ay]=TRAIL_POINTS[i-1],[bx,by]=TRAIL_POINTS[i];
-     const n=Math.ceil(Math.hypot(bx-ax,by-ay)/8);
-     for(let k=0;k<=n;k++){
-       const t=k/n,x=ax+(bx-ax)*t,y=ay+(by-ay)*t;
-       for(let j=0;j<35;j++){
-         const theta=random()*Math.PI*2,r=Math.sqrt(random())*66;
-         const xx=x+Math.cos(theta)*r,yy=y+Math.sin(theta)*r;
-         rect(c,xx,yy,4+random()*9,4+random()*8,pick(COLOR.path));
-       }
-     }
+   // Trilha contínua, com margens orgânicas e detalhes concentrados nas bordas.
+   c.lineJoin='round';c.lineCap='round';
+   const trace=(width,color)=>{
+     c.strokeStyle=color;c.lineWidth=width;c.beginPath();
+     c.moveTo(TRAIL_POINTS[0][0],TRAIL_POINTS[0][1]);
+     for(let i=1;i<TRAIL_POINTS.length;i++)c.lineTo(TRAIL_POINTS[i][0],TRAIL_POINTS[i][1]);
+     c.stroke();
+   };
+   trace(132,'#5b6844');trace(118,'#8b734e');trace(106,'#a88e65');
+   for(const [cx,cy,rx,ry] of [[305,470,128,82],[530,468,108,71],[880,430,120,76],[1320,690,118,84]]){
+     c.fillStyle='#a78d64';c.beginPath();c.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);c.fill();
    }
-   // Connected clearings reduce the linear-corridor feeling.
-   for(const [cx,cy,rx,ry] of [[305,470,135,95],[530,468,104,80],[880,430,135,95],[1320,690,130,100]]){
-     for(let i=0;i<2300;i++){
-       const a=random()*6.283,r=Math.sqrt(random());
-       rect(c,cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r,5+random()*9,4+random()*8,pick(COLOR.path));
-     }
+   for(let i=0;i<2800;i++){
+     const x=random()*W,y=random()*H,d=distanceToTrail(x,y);
+     if(d>74)continue;
+     const nearEdge=d>49;
+     const color=nearEdge?pick(['#527347','#4b6946','#937e55']):pick(['#b69a70','#9a815b','#c2a67c']);
+     rect(c,x,y,2+random()*6,1+random()*3,color);
    }
-   // A winding river that crosses the main path at the wooden bridge.
-   for(let y=0;y<H;y+=5){
-     const x=waterX(y);
-     rect(c,x-51,y,110,7,'#1b3939');
-     rect(c,x-43,y,94,7,pick(COLOR.river));
-     if(y%15===0){rect(c,x-27+random()*40,y+2,10+random()*16,2,'#75a49a')}
-     rect(c,x-56,y,7,7,'#65835a');rect(c,x+55,y,7,7,'#587451');
+   // Margem sinuosa, água profunda e pequenas áreas de espuma.
+   for(let y=0;y<H;y+=4){
+     const x=waterX(y),width=105+Math.sin(y*.028)*9;
+     rect(c,x-width/2-10,y,width+20,5,'#27483e');
+     rect(c,x-width/2-5,y,width+10,5,'#182f36');
+     rect(c,x-width/2+4,y,width-8,5,pick(['#2b5663','#326a73','#34737d']));
+     if(y%20===0)rect(c,x-22+random()*40,y+1,9+random()*13,2,'#7db2b0');
+     rect(c,x-width/2-13,y,4,5,'#64815e');
+     rect(c,x+width/2+9,y,4,5,'#64815e');
    }
  });
  scene.add.image(0,0,'forest-ground').setOrigin(0).setDepth(0);
@@ -140,7 +153,7 @@ function drawTerrain(scene){
 export function buildWorld(scene){
  seed=117926;
  makeSmallTextures(scene);
- for(let i=0;i<5;i++)treeTexture(scene,i);
+ for(let i=0;i<12;i++)treeTexture(scene,i);
  drawTerrain(scene);
  const staticColliders=[];
  const addCollider=(x,y,w,h)=>{
@@ -160,7 +173,7 @@ export function buildWorld(scene){
  for(let i=0;i<190;i++){
    let x=random()*W,y=random()*H;
    if(distanceToTrail(x,y)<125||safeFromLandmark(x,y)||Math.abs(x-waterX(y))<90)continue;
-   const variant=Math.floor(random()*5),scale=.8+random()*.48;
+   const variant=Math.floor(random()*12),scale=.70+random()*.55;
    scene.add.ellipse(x,y,65*scale,18*scale,0x0d221b,.35).setDepth(y-3);
    scene.add.image(x,y+7,'forest-tree-'+variant).setOrigin(.5,1).setScale(scale).setDepth(y+8);
    addCollider(x,y-7,23*scale,18*scale);
@@ -184,7 +197,13 @@ export function buildWorld(scene){
  addCollider(873,402,117,75);
  scene.add.image(1471,755,'forest-ruin').setOrigin(.5,1).setScale(1.04).setDepth(765);
  addCollider(1483,711,57,32);
+ scene.add.circle(312,563,60,0xe7a35a,.09).setDepth(4).setBlendMode('ADD');
  scene.add.image(312,587,'forest-fire').setOrigin(.5,1).setDepth(594);
+ for(let i=0;i<24;i++){
+   const y=24+i*43,x=waterX(y)+(random()-.5)*57;
+   const ripple=scene.add.rectangle(x,y,10+random()*13,2,0x9dd0c5,.19).setDepth(5);
+   scene.tweens.add({targets:ripple,alpha:{from:.07,to:.43},x:x+8,duration:1600+i*37,yoyo:true,repeat:-1});
+ }
  // Wooden bridge crosses the river; collision zones create real banks.
  const bridgeY=540, bx=waterX(bridgeY);
  const g=scene.add.graphics().setDepth(6);
@@ -204,10 +223,6 @@ export function buildWorld(scene){
    addCollider(waterX(y)+4,y+13,94,28);
  }
  scene.physics.add.collider(scene.player,staticColliders);
- const label=(x,y,text)=>{
-   scene.add.text(x,y,text,{fontFamily:'monospace',fontSize:'11px',fontStyle:'bold',color:'#f2dca5',backgroundColor:'#14291fcf',padding:{x:7,y:4}}).setOrigin(.5).setDepth(y+8);
- };
- label(860,324,'CABANA ABANDONADA');label(1460,635,'RUÍNAS');
  const landmarks=[
    {id:'fogueira',x:312,y:590,r:67,label:'Examinar fogueira',title:'O último acampamento',
      text:'A madeira ainda está quente. Alguém passou por aqui recentemente.\n\nEntre as cinzas, você encontra um pequeno símbolo igual ao gravado nas pedras antigas.'},
