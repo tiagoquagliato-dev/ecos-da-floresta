@@ -1,4 +1,5 @@
 // Procedural pixel-art terrain. All layers are Phaser objects, not one flat background.
+import Phaser from 'phaser';
 import {WORLD_WIDTH as W, WORLD_HEIGHT as H, TRAIL_POINTS, distanceToTrail} from './WorldGeometry.js';
 
 const COLOR={
@@ -197,7 +198,7 @@ export function buildWorld(scene){
  addCollider(873,402,117,75);
  scene.add.image(1471,755,'forest-ruin').setOrigin(.5,1).setScale(1.04).setDepth(765);
  addCollider(1483,711,57,32);
- scene.add.circle(312,563,60,0xe7a35a,.09).setDepth(4).setBlendMode('ADD');
+ scene.add.circle(312,563,60,0xe7a35a,.09).setDepth(4).setBlendMode(Phaser.BlendModes.ADD);
  scene.add.image(312,587,'forest-fire').setOrigin(.5,1).setDepth(594);
  for(let i=0;i<24;i++){
    const y=24+i*43,x=waterX(y)+(random()-.5)*57;
