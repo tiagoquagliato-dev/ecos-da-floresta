@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {resetGame} from './game/systems/SaveSystem.js';
 
 const POINTS = [
   { id:'diario', x:681, y:515, label:'Diário esquecido', hint:'Examinar diário', symbol:'▤' },
@@ -16,6 +17,7 @@ export function installChapter(scene) {
   const info = document.querySelector('#discovery');
   const intro = document.querySelector('#opening');
   const startBtn = document.querySelector('#start-game');
+  const newGameBtn = document.querySelector('#new-game');
   const soundBtn = document.querySelector('#sound-btn');
   const objects=[];
 
@@ -89,7 +91,12 @@ export function installChapter(scene) {
   }
   function nearby(x,y){return objects.find(({point})=>Math.hypot(point.x-x,point.y-y)<83)?.point||null}
   function openIntro(){
-    if(!intro || localStorage.getItem(INTRO_KEY)==='seen')return;
+    if(!intro)return;
+    const saved=scene.saveData||{};
+    const hasProgress=visited.size>0||scene.talked||scene.finished||scene.collected.size>0||
+      (saved.player && Math.hypot(saved.player.x-290,saved.player.y-462)>45);
+    if(startBtn)startBtn.innerHTML=(hasProgress?'CONTINUAR JORNADA':'INICIAR JORNADA')+' <span>→</span>';
+    if(newGameBtn)newGameBtn.hidden=!hasProgress;
     openedIntro=true;
     intro.hidden=false;
     scene.dialogOpen=true;
@@ -101,6 +108,10 @@ export function installChapter(scene) {
     scene.toast('Capítulo I: siga os sinais pela trilha.');
   };
   startBtn?.addEventListener('click',start);
+  newGameBtn?.addEventListener('click',()=>{
+    if(!confirm('Iniciar uma nova jornada? Todo o progresso desta aventura será apagado.'))return;
+    resetGame();location.reload();
+  });
   const onEnter=(event)=>{if(openedIntro && (event.key==='Enter'||event.key===' ')){event.preventDefault();start()}};
   document.addEventListener('keydown',onEnter);
   soundBtn?.addEventListener('click',()=>{const pressed=soundBtn.getAttribute('aria-pressed')==='true';soundBtn.setAttribute('aria-pressed',String(!pressed));soundBtn.textContent=pressed?'SOM: DESLIGADO':'SOM: EM BREVE';scene.toast('Trilha sonora original prevista para a próxima versão.')});
