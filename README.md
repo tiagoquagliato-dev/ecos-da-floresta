@@ -1,45 +1,60 @@
-# Ecos da Floresta — V0.6
+# Ecos da Floresta V0.7
 
-RPG 2D para navegador feito com **Phaser 3 + Vite**. Versão experimental da demonstração **Capítulo I: O Despertar**.
+RPG pixel-art experimental para navegador, construído com **Phaser 3 + Vite**.
 
-## Executar localmente
+## Jogar
+
+Produção: https://ecos-da-floresta-cyan.vercel.app/
+
+## Executar no VS Code
 
 ```bash
 npm install
 npm run dev
 ```
 
-Para compilar: `npm run build`.
+## V0.7: Cavaleiro Sombrio
 
-## Controles
+- O personagem jogável e o retrato principal utilizam o visual da referência enviada pelo autor.
+- Asset transparente: `public/assets/cavaleiro-sombrio.png`.
+- `src/game/entities/KnightSprites.js` cria quatro direções com animações básicas. As poses laterais e posteriores são adaptações provisórias, não sprites pintados individualmente.
+- Novo menu de início com **Continuar jornada** e **Nova jornada** (quando há progresso).
+- HUD reduzida, menu de inventário e missões recolhido, avisos temporários e interação contextual.
+- Missão e salvamento local preservados, com opção explícita de reinício.
+- Prioridade de interação corrigida para coletar fragmentos perto da ponte.
+- Clique para caminhar agora desiste quando o personagem fica bloqueado por um obstáculo.
+- Cenário menos granulado, doze combinações de copas, água com pequenas animações e rótulos fixos removidos.
 
-- WASD ou setas: movimentar o personagem
-- Clique/toque: caminhar até um ponto acessível
-- E / espaço: interagir
+## Teclas
+
+- WASD ou setas: mover
+- E ou espaço: interagir
 - I: inventário
-- Q: missão
-- Enter / Esc: fechar diálogo
+- Q: missões
+- Esc ou Enter: fechar diálogos
+- Clique/toque no cenário: caminhar
 
-## Explore
+## Organização
 
-A floresta agora é desenhada por camadas distintas, não como uma única imagem de fundo. Há árvores com profundidade por Y, arbustos, rochas, clareiras, rio, ponte, cabana abandonada, fogueira e ruínas. Troncos, rochas, margem do rio e construções possuem obstáculos físicos no Phaser Arcade.
+- `src/main.js`: cena principal e missão dos fragmentos
+- `src/chapter.js`: introdução, diário, marco e altar
+- `src/game/entities/KnightSprites.js`: animações do protagonista
+- `src/game/entities/PlayerController.js`: controles e movimento
+- `src/game/world/WorldBuilder.js`: terreno, decorações, obstáculos, rio e ponte
+- `src/game/world/WorldGeometry.js`: geometria e área explorável
+- `src/game/systems/SaveSystem.js`: gravação e reinício do progresso
 
-Visite o Guardião, recupere os três fragmentos e examine o diário, o marco e o altar. Cabana, ponte, fogueira e ruínas oferecem diálogos adicionais.
+## Status técnico
 
-## Arquitetura
+Esta versão é uma **prévia em desenvolvimento**. O build da Vercel verifica a compilação, mas não substitui teste manual de jogabilidade. Ainda faltam: sprites manuais de quatro direções, trilha sonora, mapa definitivo desenhado por um artista, testes automatizados de navegador e refinamento completo dos controles mobile.
 
-- `src/main.js`: cena e progressão principal
-- `src/chapter.js`: mistérios, exploração e introdução
-- `src/game/world/WorldBuilder.js`: cenário em camadas e obstáculos estáticos
-- `src/game/world/WorldGeometry.js`: dimensões e geometria
-- `src/game/entities/TravelerSprites.js`: spritesheet original e animações de quatro direções
-- `src/game/entities/PlayerController.js`: movimento e comandos
-- `src/game/systems/SaveSystem.js`: salvamento local
+## Checklist antes de convidar colaboradores
 
-## Limites conhecidos
+1. Jogar a partir de **Nova jornada**, confirmando o início limpo.
+2. Movimentar o Cavaleiro Sombrio em quatro direções e validar colisões.
+3. Atravessar a ponte, explorar a cabana e as ruínas.
+4. Falar com o Guardião e coletar os três fragmentos.
+5. Recarregar a página e verificar **Continuar jornada**.
+6. Conferir a legibilidade dos menus em desktop e celular.
 
-A versão 0.6 é **uma base técnica nova**, não a arte final aprovada. A vegetação e o personagem são desenhados proceduralmente, sem sprites pintados manualmente. Faltam animações sofisticadas, som, combate, acessibilidade mobile refinada e teste visual completo. O mundo tem uma única região de 1536×1024.
-
-## Publicação
-
-Pushes na branch `main` acionam a Vercel. Antes de apresentar a outra pessoa, validar manualmente: abrir tela inicial, caminhar, atravessar ponte, colidir com árvores e rio, interagir com Guardião, recolher os 3 fragmentos e reiniciar.
+A imagem de referência do personagem foi fornecida pelo autor do projeto. Verifique as permissões de uso da arte antes de distribuição comercial.
