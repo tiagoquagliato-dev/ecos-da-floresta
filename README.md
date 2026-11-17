@@ -1,29 +1,45 @@
-# Ecos da Floresta — V0.4 | Edição Ilustrada
+# Ecos da Floresta — V0.6
 
-RPG 2D para navegador, feito com Phaser 3 e Vite. Esta edição substitui a floresta de formas procedurais por uma composição original ilustrada em pixel art, incluindo novo personagem e Guardião, com a missão completa.
+RPG 2D para navegador feito com **Phaser 3 + Vite**. Versão experimental da demonstração **Capítulo I: O Despertar**.
 
-## Rodar
-
-Requer Node.js 20+. No terminal da pasta do projeto:
+## Executar localmente
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abra a URL local mostrada no terminal.
+Para compilar: `npm run build`.
 
 ## Controles
 
-- WASD / setas: caminhar
-- E ou Espaço: interagir e recolher fragmentos
+- WASD ou setas: movimentar o personagem
+- Clique/toque: caminhar até um ponto acessível
+- E / espaço: interagir
 - I: inventário
-- Q: diário da missão
-- Esc / Enter: fechar diálogo
-- Clique ou toque: caminhar até um ponto acessível da trilha
+- Q: missão
+- Enter / Esc: fechar diálogo
 
-## Escopo
+## Explore
 
-Missão completa com três fragmentos e Guardião; progresso salvo localmente no navegador; interface responsiva. O cenário é uma **área ilustrada fixa** com deslocamento de câmera, não um mapa expansível composto de tiles. A movimentação fica restrita à trilha para impedir que o personagem atravesse a vegetação pintada na imagem. Os sprites são ilustrações originais recortadas de um estudo de direção de arte, com animação de deslocamento sutil (sem spritesheet de caminhada direcional). O código está organizado em `src/main.js` e o layout em `src/style.css`.
+A floresta agora é desenhada por camadas distintas, não como uma única imagem de fundo. Há árvores com profundidade por Y, arbustos, rochas, clareiras, rio, ponte, cabana abandonada, fogueira e ruínas. Troncos, rochas, margem do rio e construções possuem obstáculos físicos no Phaser Arcade.
 
-O progresso da versão anterior não é importado: a versão 0.4 tem salvamento separado para a nova missão.
+Visite o Guardião, recupere os três fragmentos e examine o diário, o marco e o altar. Cabana, ponte, fogueira e ruínas oferecem diálogos adicionais.
+
+## Arquitetura
+
+- `src/main.js`: cena e progressão principal
+- `src/chapter.js`: mistérios, exploração e introdução
+- `src/game/world/WorldBuilder.js`: cenário em camadas e obstáculos estáticos
+- `src/game/world/WorldGeometry.js`: dimensões e geometria
+- `src/game/entities/TravelerSprites.js`: spritesheet original e animações de quatro direções
+- `src/game/entities/PlayerController.js`: movimento e comandos
+- `src/game/systems/SaveSystem.js`: salvamento local
+
+## Limites conhecidos
+
+A versão 0.6 é **uma base técnica nova**, não a arte final aprovada. A vegetação e o personagem são desenhados proceduralmente, sem sprites pintados manualmente. Faltam animações sofisticadas, som, combate, acessibilidade mobile refinada e teste visual completo. O mundo tem uma única região de 1536×1024.
+
+## Publicação
+
+Pushes na branch `main` acionam a Vercel. Antes de apresentar a outra pessoa, validar manualmente: abrir tela inicial, caminhar, atravessar ponte, colidir com árvores e rio, interagir com Guardião, recolher os 3 fragmentos e reiniciar.
