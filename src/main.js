@@ -55,6 +55,7 @@ class Floresta extends Phaser.Scene{
  inventory(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('Inventário',`✦ Fragmentos da luz: ${this.collected.size} de 3\n\n${this.finished?'A floresta foi restaurada.':'Fragmentos antigos escondidos pela trilha. Encontre todos e entregue ao Guardião.'}`)}
  questDialog(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('A Primeira Luz',this.finished?'Missão concluída! Você devolveu a luz à floresta.':this.talked?`Encontre os três fragmentos e retorne ao Guardião.\n\nProgresso: ${this.collected.size}/3.`:'Encontre o Guardião na clareira e converse com ele para iniciar sua jornada.')}
  interact(){if(document.querySelector('#opening')?.hidden===false)return;if(this.dialogOpen){this.closeDialog();return}const x=this.player.x,y=this.player.y;
+  if(this.worldLayers?.interact(x,y))return;
   if(this.chapter?.interact(x,y))return;const nearItem=this.items.find(i=>!this.collected.has(i.id)&&distance(x,y,i.x,i.y)<84);if(nearItem){this.collected.add(nearItem.id);[nearItem.crystal,nearItem.ring,nearItem.glow].forEach(o=>o?.destroy());this.toast(`Fragmento da luz encontrado! ${this.collected.size}/3`);this.refreshUI();this.save();return}
   if(distance(x,y,514,464)<112){this.talked=true;if(this.collected.size===3){this.finished=true;this.openDialog('A floresta desperta','Você reuniu os três fragmentos!\n\nA luz retorna lentamente entre as árvores. Seu primeiro capítulo está completo.\n\n✦ MISSÃO CONCLUÍDA ✦')}else{this.openDialog('O Guardião',`Viajante, uma antiga luz se partiu.\n\nSiga a trilha e encontre os três fragmentos escondidos na floresta.\n\nTraga-os até mim. A floresta precisa de você.\n\nFragmentos encontrados: ${this.collected.size}/3.`)}this.refreshUI();this.save();return}
   this.toast('Explore o mundo e aproxime-se de algum ponto de interesse.')
@@ -63,9 +64,9 @@ class Floresta extends Phaser.Scene{
   if(this.dialogOpen){this.player.setVelocity(0);this.near=null;ELEMENTS.interact.hidden=true;return}
   updatePlayer(this,delta);
   const p=this.player;
-  this.near=distance(p.x,p.y,514,464)<108 || this.items.some(i=>!this.collected.has(i.id)&&distance(p.x,p.y,i.x,i.y)<83) || !!this.chapter?.nearby(p.x,p.y);
+  this.near=distance(p.x,p.y,514,464)<108 || this.items.some(i=>!this.collected.has(i.id)&&distance(p.x,p.y,i.x,i.y)<83) || !!this.chapter?.nearby(p.x,p.y) || !!this.worldLayers?.nearby(p.x,p.y);
   ELEMENTS.interact.hidden=!this.near;
-  if(this.near){const prompt=this.chapter?.nearby(p.x,p.y)?.hint || (distance(p.x,p.y,514,464)<108?'Falar com Guardião':'Coletar fragmento');ELEMENTS.interact.querySelector('span').textContent=prompt}
+  if(this.near){const prompt=this.worldLayers?.nearby(p.x,p.y)?.label || this.chapter?.nearby(p.x,p.y)?.hint || (distance(p.x,p.y,514,464)<108?'Falar com Guardião':'Coletar fragmento');ELEMENTS.interact.querySelector('span').textContent=prompt}
   this.chapter?.update(delta);this.saveElapsed=(this.saveElapsed||0)+delta;if(this.saveElapsed>3000){this.saveElapsed=0;this.save()}
  }
 }
