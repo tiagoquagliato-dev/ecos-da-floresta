@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { installChapter } from './chapter.js';
 
 const WIDTH = 1536, HEIGHT = 1024;
 const SAVE_KEY = 'ecos-floresta-v04';
@@ -30,6 +31,7 @@ class Floresta extends Phaser.Scene{
   this.tweens.add({targets:this.guardianLabel,alpha:.7,duration:1400,yoyo:true,repeat:-1});
   this.items=[{id:0,x:790,y:543},{id:1,x:1095,y:548},{id:2,x:1389,y:821}];
   this.items.forEach(item=>this.renderItem(item));
+  this.chapter=installChapter(this);
   this.cameras.main.startFollow(this.player,true,.095,.095);this.cameras.main.setZoom(1.06);
   this.keys=this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE,I,Q,ESC,ENTER');
   this.input.keyboard.on('keydown-E',()=>this.interact());this.input.keyboard.on('keydown-SPACE',()=>this.interact());
@@ -55,7 +57,8 @@ class Floresta extends Phaser.Scene{
  closeDialog(){this.dialogOpen=false;ELEMENTS.dialog.hidden=true}
  inventory(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('Inventário',`✦ Fragmentos da luz: ${this.collected.size} de 3\n\n${this.finished?'A floresta foi restaurada.':'Fragmentos antigos escondidos pela trilha. Encontre todos e entregue ao Guardião.'}`)}
  questDialog(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('A Primeira Luz',this.finished?'Missão concluída! Você devolveu a luz à floresta.':this.talked?`Encontre os três fragmentos e retorne ao Guardião.\n\nProgresso: ${this.collected.size}/3.`:'Encontre o Guardião na clareira e converse com ele para iniciar sua jornada.')}
- interact(){if(this.dialogOpen){this.closeDialog();return}const x=this.player.x,y=this.player.y;const nearItem=this.items.find(i=>!this.collected.has(i.id)&&distance(x,y,i.x,i.y)<84);if(nearItem){this.collected.add(nearItem.id);[nearItem.crystal,nearItem.ring,nearItem.glow].forEach(o=>o?.destroy());this.toast(`Fragmento da luz encontrado! ${this.collected.size}/3`);this.refreshUI();this.save();return}
+ interact(){if(this.dialogOpen){this.closeDialog();return}const x=this.player.x,y=this.player.y;
+  if(this.chapter?.interact(x,y))return;const nearItem=this.items.find(i=>!this.collected.has(i.id)&&distance(x,y,i.x,i.y)<84);if(nearItem){this.collected.add(nearItem.id);[nearItem.crystal,nearItem.ring,nearItem.glow].forEach(o=>o?.destroy());this.toast(`Fragmento da luz encontrado! ${this.collected.size}/3`);this.refreshUI();this.save();return}
   if(distance(x,y,514,464)<112){this.talked=true;if(this.collected.size===3){this.finished=true;this.openDialog('A floresta desperta','Você reuniu os três fragmentos!\n\nA luz retorna lentamente entre as árvores. Seu primeiro capítulo está completo.\n\n✦ MISSÃO CONCLUÍDA ✦')}else{this.openDialog('O Guardião',`Viajante, uma antiga luz se partiu.\n\nSiga a trilha e encontre os três fragmentos escondidos na floresta.\n\nTraga-os até mim. A floresta precisa de você.\n\nFragmentos encontrados: ${this.collected.size}/3.`)}this.refreshUI();this.save();return}
   this.toast('Aproxime-se do Guardião ou de um fragmento brilhante.')
  }
@@ -69,10 +72,10 @@ class Floresta extends Phaser.Scene{
   const length=Math.hypot(dx,dy)||1,spd=175;p.setVelocity(dx/length*spd,dy/length*spd);
   if(dx||dy){this.elapsed+=delta*.014;p.setScale(.83,.83+Math.sin(this.elapsed)*.012);if(dx>.2)p.setFlipX(true);if(dx<-.2)p.setFlipX(false)}else{p.setScale(.83);this.elapsed=0}
   p.setDepth(p.y+15);this.playerShadow.setPosition(p.x,p.y+1).setDepth(p.y-4);
-  this.near=distance(p.x,p.y,514,464)<108 || this.items.some(i=>!this.collected.has(i.id)&&distance(p.x,p.y,i.x,i.y)<83);
+  this.near=distance(p.x,p.y,514,464)<108 || this.items.some(i=>!this.collected.has(i.id)&&distance(p.x,p.y,i.x,i.y)<83) || !!this.chapter?.nearby(p.x,p.y);
   ELEMENTS.interact.hidden=!this.near;
-  if(this.near){const prompt=distance(p.x,p.y,514,464)<108?'Falar com Guardião':'Coletar fragmento';ELEMENTS.interact.querySelector('span').textContent=prompt}
-  this.saveElapsed=(this.saveElapsed||0)+delta;if(this.saveElapsed>3000){this.saveElapsed=0;this.save()}
+  if(this.near){const prompt=this.chapter?.nearby(p.x,p.y)?.hint || (distance(p.x,p.y,514,464)<108?'Falar com Guardião':'Coletar fragmento');ELEMENTS.interact.querySelector('span').textContent=prompt}
+  this.chapter?.update(delta);this.saveElapsed=(this.saveElapsed||0)+delta;if(this.saveElapsed>3000){this.saveElapsed=0;this.save()}
  }
 }
 const game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:1100,height:700,backgroundColor:'#14251c',pixelArt:true,roundPixels:true,scale:{mode:Phaser.Scale.RESIZE,autoCenter:Phaser.Scale.CENTER_BOTH},physics:{default:'arcade',arcade:{debug:false}},render:{antialias:false},scene:[Floresta]});
@@ -80,4 +83,4 @@ document.querySelector('#dialog-close').addEventListener('click',()=>gameScene?.
 document.querySelector('#inventory-btn').addEventListener('click',()=>gameScene?.inventory());
 document.querySelector('#quests-btn').addEventListener('click',()=>gameScene?.questDialog());
 document.querySelector('#interact-btn').addEventListener('click',()=>gameScene?.interact());
-document.querySelector('#reset-btn').addEventListener('click',()=>{if(confirm('Reiniciar a missão e apagar o progresso da V0.4?')){localStorage.removeItem(SAVE_KEY);location.reload()}});
+document.querySelector('#reset-btn').addEventListener('click',()=>{if(confirm('Reiniciar toda a jornada e apagar o progresso da V0.5?')){localStorage.removeItem(SAVE_KEY);localStorage.removeItem('ecos-floresta-capitulo-v05');localStorage.removeItem('ecos-floresta-intro-v05');location.reload()}});
