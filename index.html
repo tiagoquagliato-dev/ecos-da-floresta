@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#15231b"/>
+  <title>Ecos da Floresta | A Primeira Luz</title>
+  <link rel="stylesheet" href="/src/style.css"/>
+</head>
+<body>
+  <main id="shell">
+    <div id="game" aria-label="Jogo Ecos da Floresta"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <header class="profile" aria-label="Personagem">
+      <div class="portrait">✦</div>
+      <div class="vitals"><div class="topline"><b>VIAJANTE</b><span>NÍVEL 01</span></div><div class="hearts">♥ ♥ ♥</div><div class="life"><span></span></div></div>
+    </header>
+    <aside class="quest-card" aria-live="polite"><div class="quest-title"><span>✦</span> A PRIMEIRA LUZ</div><p id="quest-hint">Encontre o Guardião da floresta</p><div class="quest-line"><span id="talk-check">□</span><span>Fale com o Guardião</span></div><div class="quest-line"><span id="fragment-check">□</span><span>Fragmentos da luz: <strong id="count">0/3</strong></span></div><div class="quest-line"><span id="finish-check">□</span><span>Retorne ao Guardião</span></div></aside>
+    <div id="toast" role="status">Explore a trilha. O Guardião está por perto.</div>
+    <div class="hotbar" aria-label="Itens rápidos"><div class="slot filled"><span>✦</span><small>1</small></div><div class="slot"><span>♧</span><small>2</small></div><div class="slot"><span>◈</span><small>3</small></div><div class="slot"><small>4</small></div><div class="slot"><small>5</small></div></div>
+    <nav class="actions" aria-label="Ações do jogo"><button id="inventory-btn" type="button"><span>▤</span>Inventário <kbd>I</kbd></button><button id="quests-btn" type="button"><span>✧</span>Missão <kbd>Q</kbd></button><button id="reset-btn" type="button"><span>↺</span>Reiniciar</button></nav>
+    <div class="controls-help">WASD ou setas: mover <i>·</i> E: interagir <i>·</i> Clique/toque: caminhar</div>
+    <button class="interact-btn" id="interact-btn" type="button" hidden> E <span>Interagir</span></button>
+    <section class="dialog-scrim" id="dialog" hidden><div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="eyebrow">ECOS DA FLORESTA</div><h2 id="dialog-title"></h2><p id="dialog-body"></p><button id="dialog-close" type="button">Continuar <span>↵</span></button></div></section>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
