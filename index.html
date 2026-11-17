@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#15231b"/>
-  <title>Ecos da Floresta | Capítulo I: O Despertar</title>
+  <title>Ecos da Floresta | O Cavaleiro Sombrio</title>
   <meta name="description" content="Uma aventura pixel art de mistério e exploração. Descubra os segredos da floresta."/>
   <link rel="stylesheet" href="/src/style.css"/>
 </head>
@@ -15,16 +15,26 @@
     <div class="discovery-counter" id="discovery">0/3 DESCOBERTAS</div>
     <div class="vignette" aria-hidden="true"></div>
     <header class="profile" aria-label="Personagem">
-      <div class="portrait">✦</div>
-      <div class="vitals"><div class="topline"><b>VIAJANTE</b><span>NÍVEL 01</span></div><div class="hearts">♥ ♥ ♥</div><div class="life"><span></span></div></div>
+      <div class="portrait"><img src="/assets/cavaleiro-sombrio.png" alt="Retrato do Cavaleiro Sombrio"/></div>
+      <div class="vitals"><div class="topline"><b>CAVALEIRO SOMBRIO</b><span>CAPÍTULO I</span></div><span class="profile-subtitle">O despertar</span></div>
     </header>
-    <aside class="quest-card" aria-live="polite"><div class="quest-title"><span>✦</span> A PRIMEIRA LUZ</div><p id="quest-hint">Encontre o Guardião da floresta</p><div class="quest-line"><span id="talk-check">□</span><span>Fale com o Guardião</span></div><div class="quest-line"><span id="fragment-check">□</span><span>Fragmentos da luz: <strong id="count">0/3</strong></span></div><div class="quest-line"><span id="finish-check">□</span><span>Retorne ao Guardião</span></div></aside>
+    <aside class="quest-card" aria-live="polite" title="Pressione Q para ver a missão completa"><div class="quest-title"><span>✦</span> A PRIMEIRA LUZ</div><p id="quest-hint">Encontre o Guardião da floresta</p><div class="quest-line"><span id="talk-check">□</span><span>Fale com o Guardião</span></div><div class="quest-line"><span id="fragment-check">□</span><span>Fragmentos da luz: <strong id="count">0/3</strong></span></div><div class="quest-line"><span id="finish-check">□</span><span>Retorne ao Guardião</span></div></aside>
     <div id="toast" role="status">Explore a trilha. O Guardião está por perto.</div>
-    <div class="hotbar" aria-label="Itens rápidos"><div class="slot filled"><span>✦</span><small>1</small></div><div class="slot"><span>♧</span><small>2</small></div><div class="slot"><span>◈</span><small>3</small></div><div class="slot"><small>4</small></div><div class="slot"><small>5</small></div></div>
-    <nav class="actions" aria-label="Ações do jogo"><button id="inventory-btn" type="button"><span>▤</span>Inventário <kbd>I</kbd></button><button id="quests-btn" type="button"><span>✧</span>Missão <kbd>Q</kbd></button><button id="reset-btn" type="button"><span>↺</span>Reiniciar</button></nav>
+    
+    <nav class="actions" aria-label="Menu do jogo">
+      <button id="menu-btn" type="button" aria-expanded="false" aria-controls="menu-panel">☰ <span>Menu</span></button>
+      <div id="menu-panel" hidden>
+        <button id="inventory-btn" type="button">Inventário <kbd>I</kbd></button>
+        <button id="quests-btn" type="button">Missões <kbd>Q</kbd></button>
+        <button id="reset-btn" type="button">Nova jornada</button>
+      </div>
+    </nav>
     <div class="controls-help">WASD ou setas: mover <i>·</i> E: interagir <i>·</i> Clique/toque: caminhar</div>
     <button class="interact-btn" id="interact-btn" type="button" hidden> E <span>Interagir</span></button>
-    <section class="opening" id="opening" hidden><div class="opening-shade"></div><div class="opening-content"><span class="opening-label">UMA AVENTURA DE MISTÉRIO E EXPLORAÇÃO</span><h1>ECOS <small>DA</small><br/>FLORESTA</h1><div class="opening-line"></div><h2>CAPÍTULO I: O DESPERTAR</h2><p>Nem tudo que a floresta esqueceu está perdido.<br/>Siga os sinais. Descubra o que repousa sob as raízes.</p><button id="start-game" type="button">INICIAR JORNADA <span>→</span></button><span class="opening-tip">WASD PARA MOVER · E PARA INTERAGIR</span></div></section>
+    <section class="opening" id="opening" hidden><div class="opening-shade"></div><img class="opening-knight" src="/assets/cavaleiro-sombrio.png" alt="" aria-hidden="true"/><div class="opening-content"><span class="opening-label">UMA AVENTURA DE MISTÉRIO E EXPLORAÇÃO</span><h1>ECOS <small>DA</small><br/>FLORESTA</h1><div class="opening-line"></div><h2>CAPÍTULO I: O DESPERTAR</h2><p>Nem tudo que a floresta esqueceu está perdido.<br/>Siga os sinais. Descubra o que repousa sob as raízes.</p><div class="opening-actions">
+          <button id="start-game" type="button">INICIAR JORNADA <span>→</span></button>
+          <button id="new-game" type="button" hidden>NOVA JORNADA</button>
+        </div><span class="opening-tip">WASD PARA MOVER · E PARA INTERAGIR</span></div></section>
     <section class="dialog-scrim" id="dialog" hidden><div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="eyebrow">ECOS DA FLORESTA</div><h2 id="dialog-title"></h2><p id="dialog-body"></p><button id="dialog-close" type="button">Continuar <span>↵</span></button></div></section>
   </main>
   <script type="module" src="/src/main.js"></script>
