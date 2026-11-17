@@ -3,7 +3,7 @@ import { installChapter } from './chapter.js';
 import {WORLD_WIDTH, WORLD_HEIGHT, distance, isWalkable} from './game/world/WorldGeometry.js';
 import {SAVE_KEY, loadGame, saveGame, resetGame} from './game/systems/SaveSystem.js';
 import {installPlayerControls, updatePlayer} from './game/entities/PlayerController.js';
-import {createTravelerAnimations} from './game/entities/TravelerSprites.js';
+import {createKnightAnimations} from './game/entities/KnightSprites.js';
 import {buildWorld} from './game/world/WorldBuilder.js';
 
 const WIDTH=WORLD_WIDTH, HEIGHT=WORLD_HEIGHT;
@@ -16,15 +16,15 @@ const ELEMENTS = {
 let gameScene;
 class Floresta extends Phaser.Scene{
  constructor(){super('Floresta');this.saveData=loadGame();this.collected=new Set(this.saveData.collected||[]);this.talked=!!this.saveData.talked;this.finished=!!this.saveData.finished;this.dialogOpen=false;this.destination=null;this.near=null;this.elapsed=0;this.noticeTimer=null}
- preload(){this.load.image('forest','/assets/floresta.png');this.load.image('hero','/assets/heroi.png');this.load.image('guardian','/assets/guardiao.png');this.load.image('fragment','/assets/fragment.png')}
+ preload(){this.load.image('dark-knight-source','/assets/cavaleiro-sombrio.png');this.load.image('guardian','/assets/guardiao.png');this.load.image('fragment','/assets/fragment.png')}
  create(){gameScene=this;
   this.cameras.main.setBackgroundColor('#101b15');this.physics.world.setBounds(0,0,WIDTH,HEIGHT);this.cameras.main.setBounds(0,0,WIDTH,HEIGHT);
-  createTravelerAnimations(this);
+  createKnightAnimations(this);
   this.add.ellipse(255,470,36,12,0x152318,.48).setDepth(15);
   const start=this.saveData.player && this.inTrail(this.saveData.player.x,this.saveData.player.y)?this.saveData.player:{x:290,y:462};
   this.playerShadow=this.add.ellipse(start.x,start.y+2,42,14,0x171d12,.43).setDepth(18);
-  this.player=this.physics.add.sprite(start.x,start.y,'traveler',0).setOrigin(.5,1).setDepth(20).setCollideWorldBounds(true);
-  this.player.setScale(1.8);this.player.body.setSize(13,9).setOffset(10,29);this.player.setFrame(0);
+  this.player=this.physics.add.sprite(start.x,start.y,'dark-knight',0).setOrigin(.5,1).setDepth(20).setCollideWorldBounds(true);
+  this.player.setScale(.94);this.player.body.setSize(19,10).setOffset(23,99);this.player.setFrame(0);
   this.worldLayers=buildWorld(this);
   this.guardianShadow=this.add.ellipse(514,464,70,16,0x161c13,.38).setDepth(19);
   this.guardian=this.add.image(514,464,'guardian').setOrigin(.5,1).setScale(.88).setDepth(21);
@@ -55,18 +55,24 @@ class Floresta extends Phaser.Scene{
  inventory(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('Inventário',`✦ Fragmentos da luz: ${this.collected.size} de 3\n\n${this.finished?'A floresta foi restaurada.':'Fragmentos antigos escondidos pela trilha. Encontre todos e entregue ao Guardião.'}`)}
  questDialog(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('A Primeira Luz',this.finished?'Missão concluída! Você devolveu a luz à floresta.':this.talked?`Encontre os três fragmentos e retorne ao Guardião.\n\nProgresso: ${this.collected.size}/3.`:'Encontre o Guardião na clareira e converse com ele para iniciar sua jornada.')}
  interact(){if(document.querySelector('#opening')?.hidden===false)return;if(this.dialogOpen){this.closeDialog();return}const x=this.player.x,y=this.player.y;
-  if(this.worldLayers?.interact(x,y))return;
-  if(this.chapter?.interact(x,y))return;const nearItem=this.items.find(i=>!this.collected.has(i.id)&&distance(x,y,i.x,i.y)<84);if(nearItem){this.collected.add(nearItem.id);[nearItem.crystal,nearItem.ring,nearItem.glow].forEach(o=>o?.destroy());this.toast(`Fragmento da luz encontrado! ${this.collected.size}/3`);this.refreshUI();this.save();return}
+  const nearItem=this.items.find(i=>!this.collected.has(i.id)&&distance(x,y,i.x,i.y)<84);if(nearItem){this.collected.add(nearItem.id);[nearItem.crystal,nearItem.ring,nearItem.glow].forEach(o=>o?.destroy());this.toast(`Fragmento da luz encontrado! ${this.collected.size}/3`);this.refreshUI();this.save();return}
+  if(this.chapter?.interact(x,y))return;
   if(distance(x,y,514,464)<112){this.talked=true;if(this.collected.size===3){this.finished=true;this.openDialog('A floresta desperta','Você reuniu os três fragmentos!\n\nA luz retorna lentamente entre as árvores. Seu primeiro capítulo está completo.\n\n✦ MISSÃO CONCLUÍDA ✦')}else{this.openDialog('O Guardião',`Viajante, uma antiga luz se partiu.\n\nSiga a trilha e encontre os três fragmentos escondidos na floresta.\n\nTraga-os até mim. A floresta precisa de você.\n\nFragmentos encontrados: ${this.collected.size}/3.`)}this.refreshUI();this.save();return}
+  if(this.worldLayers?.interact(x,y))return;
   this.toast('Explore o mundo e aproxime-se de algum ponto de interesse.')
  }
  update(_,delta){if(!this.player)return;
   if(this.dialogOpen){this.player.setVelocity(0);this.near=null;ELEMENTS.interact.hidden=true;return}
   updatePlayer(this,delta);
   const p=this.player;
-  this.near=distance(p.x,p.y,514,464)<108 || this.items.some(i=>!this.collected.has(i.id)&&distance(p.x,p.y,i.x,i.y)<83) || !!this.chapter?.nearby(p.x,p.y) || !!this.worldLayers?.nearby(p.x,p.y);
+  const item=this.items.find(i=>!this.collected.has(i.id)&&distance(p.x,p.y,i.x,i.y)<83);
+  const discovery=this.chapter?.nearby(p.x,p.y);
+  const guardianNearby=distance(p.x,p.y,514,464)<108;
+  const landmark=this.worldLayers?.nearby(p.x,p.y);
+  this.near=!!(item||discovery||guardianNearby||landmark);
   ELEMENTS.interact.hidden=!this.near;
-  if(this.near){const prompt=this.worldLayers?.nearby(p.x,p.y)?.label || this.chapter?.nearby(p.x,p.y)?.hint || (distance(p.x,p.y,514,464)<108?'Falar com Guardião':'Coletar fragmento');ELEMENTS.interact.querySelector('span').textContent=prompt}
+  if(this.near){const prompt=item?'Coletar fragmento':discovery?.hint||(guardianNearby?'Falar com Guardião':landmark?.label||'Interagir');ELEMENTS.interact.querySelector('span').textContent=prompt;
+  }
   this.chapter?.update(delta);this.saveElapsed=(this.saveElapsed||0)+delta;if(this.saveElapsed>3000){this.saveElapsed=0;this.save()}
  }
 }
