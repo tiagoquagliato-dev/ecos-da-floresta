@@ -13,7 +13,7 @@ export function installPlayerControls(scene) {
     if(scene.dialogOpen)return;
     const point=scene.cameras.main.getWorldPoint(p.x,p.y);
     if(scene.inTrail(point.x,point.y,128))scene.destination={x:point.x,y:point.y};
-    else scene.toast('Siga pela trilha. A floresta é muito densa por aqui.');
+    else scene.toast('Os limites da floresta impedem seguir adiante.');
   });
 }
 
@@ -26,7 +26,7 @@ export function updatePlayer(scene,delta) {
     p.setPosition(scene.lastSafe?.x??290,scene.lastSafe?.y??462);
     p.setVelocity(0);
     scene.destination=null;
-    scene.toast('Você precisa permanecer na trilha.');
+    scene.toast('Você chegou ao limite desta região.');
   } else scene.lastSafe={x:p.x,y:p.y};
 
   let dx=0,dy=0;
@@ -45,11 +45,15 @@ export function updatePlayer(scene,delta) {
   const len=Math.hypot(dx,dy)||1;
   p.setVelocity(dx/len*175,dy/len*175);
   if(dx||dy){
-    scene.elapsed+=delta*.014;
-    p.setScale(.83,.83+Math.sin(scene.elapsed)*.012);
-    if(dx>.2)p.setFlipX(true);
-    if(dx<-.2)p.setFlipX(false);
-  } else {p.setScale(.83);scene.elapsed=0}
+    const facing=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
+    scene.facing=facing;
+    const key='traveler-walk-'+facing;
+    if(p.anims.currentAnim?.key!==key)p.play(key,true);
+  } else {
+    const facing=scene.facing||'down';
+    const key='traveler-idle-'+facing;
+    if(p.anims.currentAnim?.key!==key)p.play(key,true);
+  }
   p.setDepth(p.y+15);
   scene.playerShadow.setPosition(p.x,p.y+1).setDepth(p.y-4);
 }
