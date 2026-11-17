@@ -49,8 +49,8 @@ class Floresta extends Phaser.Scene{
  }
  refreshUI(){ELEMENTS.talk.textContent=this.talked?'☑':'□';ELEMENTS.fragments.textContent=this.collected.size===3?'☑':'□';ELEMENTS.finish.textContent=this.finished?'☑':'□';ELEMENTS.counter.textContent=`${this.collected.size}/3`;ELEMENTS.hint.textContent=this.finished?'Missão concluída!':this.talked?'Reúna os fragmentos brilhantes':'Encontre o Guardião da floresta';}
  save(){saveGame(this)}
- toast(message){ELEMENTS.toast.textContent=message;clearTimeout(this.noticeTimer);this.noticeTimer=setTimeout(()=>{ELEMENTS.toast.textContent=this.finished?'A floresta está em paz.':'Aproxime-se e pressione E para interagir.'},4300)}
- openDialog(title,text){this.dialogOpen=true;this.destination=null;this.player.setVelocity(0);ELEMENTS.title.textContent=title;ELEMENTS.body.textContent=text;ELEMENTS.dialog.hidden=false}
+ toast(message){ELEMENTS.toast.hidden=false;ELEMENTS.toast.textContent=message;clearTimeout(this.noticeTimer);this.noticeTimer=setTimeout(()=>{ELEMENTS.toast.hidden=true},3500)}
+ openDialog(title,text){this.dialogOpen=true;this.destination=null;this.player.setVelocity(0);const menu=document.querySelector('#menu-panel');if(menu)menu.hidden=true;document.querySelector('#menu-btn')?.setAttribute('aria-expanded','false');ELEMENTS.title.textContent=title;ELEMENTS.body.textContent=text;ELEMENTS.dialog.hidden=false}
  closeDialog(){if(document.querySelector('#opening')?.hidden===false)return;this.dialogOpen=false;ELEMENTS.dialog.hidden=true}
  inventory(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('Inventário',`✦ Fragmentos da luz: ${this.collected.size} de 3\n\n${this.finished?'A floresta foi restaurada.':'Fragmentos antigos escondidos pela trilha. Encontre todos e entregue ao Guardião.'}`)}
  questDialog(){if(this.dialogOpen){this.closeDialog();return}this.openDialog('A Primeira Luz',this.finished?'Missão concluída! Você devolveu a luz à floresta.':this.talked?`Encontre os três fragmentos e retorne ao Guardião.\n\nProgresso: ${this.collected.size}/3.`:'Encontre o Guardião na clareira e converse com ele para iniciar sua jornada.')}
@@ -71,6 +71,7 @@ class Floresta extends Phaser.Scene{
   const landmark=this.worldLayers?.nearby(p.x,p.y);
   this.near=!!(item||discovery||guardianNearby||landmark);
   ELEMENTS.interact.hidden=!this.near;
+  if(this.near){const cam=this.cameras.main;const screenX=(p.x-cam.worldView.x)*cam.zoom;const screenY=(p.y-cam.worldView.y)*cam.zoom-p.displayHeight*cam.zoom-15;ELEMENTS.interact.style.left=`${Math.round(Phaser.Math.Clamp(screenX,90,this.scale.width-90))}px`;ELEMENTS.interact.style.top=`${Math.round(Math.max(62,screenY))}px`;}
   if(this.near){const prompt=item?'Coletar fragmento':discovery?.hint||(guardianNearby?'Falar com Guardião':landmark?.label||'Interagir');ELEMENTS.interact.querySelector('span').textContent=prompt;
   }
   this.chapter?.update(delta);this.saveElapsed=(this.saveElapsed||0)+delta;if(this.saveElapsed>3000){this.saveElapsed=0;this.save()}
@@ -81,4 +82,18 @@ document.querySelector('#dialog-close').addEventListener('click',()=>gameScene?.
 document.querySelector('#inventory-btn').addEventListener('click',()=>gameScene?.inventory());
 document.querySelector('#quests-btn').addEventListener('click',()=>gameScene?.questDialog());
 document.querySelector('#interact-btn').addEventListener('click',()=>gameScene?.interact());
-document.querySelector('#reset-btn').addEventListener('click',()=>{if(confirm('Reiniciar toda a jornada e apagar o progresso da V0.5?')){resetGame();location.reload()}});
+document.querySelector('#reset-btn').addEventListener('click',()=>{if(confirm('Iniciar uma nova jornada e apagar todo o progresso salvo?')){resetGame();location.reload()}});
+
+const menuButton=document.querySelector('#menu-btn');
+const menuPanel=document.querySelector('#menu-panel');
+menuButton?.addEventListener('click',()=>{
+  if(!menuPanel)return;
+  menuPanel.hidden=!menuPanel.hidden;
+  menuButton.setAttribute('aria-expanded',String(!menuPanel.hidden));
+});
+for(const id of ['inventory-btn','quests-btn']){
+  document.querySelector('#'+id)?.addEventListener('click',()=>{
+    if(menuPanel)menuPanel.hidden=true;
+    menuButton?.setAttribute('aria-expanded','false');
+  });
+}
